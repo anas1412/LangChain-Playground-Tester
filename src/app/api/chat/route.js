@@ -8,7 +8,7 @@ export async function POST(request) {
 
   // Create system prompt template
   const systemPromptTemplate = PromptTemplate.fromTemplate(
-    "You are a helpful assistant. Your name is Mari and you are {personality}."
+    "You are a helpful assistant. Your name is Gini and you are {personality}."
   );
 
   // Create human prompt template
@@ -17,7 +17,7 @@ export async function POST(request) {
     - mbti: The user's MBTI personality type. Return null if you are unsure or cannot determine a valid MBTI type.
     - horoscope: The user's horoscope based on their birthdate. Return null if birthdate is not provided or invalid.
     - gifts: An array of {num_gifts} gift suggestions for the user.
-    - note: A {note_style} note from Mari to the user, related to their personality analysis.
+    - note: A {note_style} note from Gini to the user, related to their personality analysis.
 
     User Input: {user_input}
 
@@ -41,7 +41,6 @@ export async function POST(request) {
     new HumanMessage(humanPrompt),
   ];
 
-  // Rest of your code remains the same...
   const validMBTI = [
     "ISTJ",
     "ISFJ",
@@ -65,22 +64,30 @@ export async function POST(request) {
     const response = await llm.invoke(messages);
     let responseText = response.content;
 
-    // Your existing response processing code...
-    if (responseText.startsWith("```json")) {
-      responseText = responseText.substring(8);
-    }
-    if (responseText.endsWith("```")) {
-      responseText = responseText.substring(0, responseText.length - 3);
+    console.log("Raw LLM response:", responseText); // Log raw response
+
+    // Clean up the response text
+    responseText = responseText.replace(/^```json\s*/, ""); // Remove starting JSON markers
+    responseText = responseText.replace(/```$/, ""); // Remove ending JSON markers
+    responseText = responseText.trim(); // Remove any extra whitespace
+
+    console.log("Processed response text:", responseText); // Log processed text
+
+    // Validate JSON structure
+    if (!responseText.startsWith("{") || !responseText.endsWith("}")) {
+      throw new Error("Invalid JSON format in LLM response");
     }
 
+    // Parse the cleaned response
     let jsonResponse = JSON.parse(responseText);
+    console.log("Parsed JSON response:", jsonResponse); // Log parsed JSON
 
+    // Validate MBTI
     if (jsonResponse.mbti) {
       const mbtiUpper = jsonResponse.mbti.toUpperCase();
+      console.log(`Validating MBTI type: ${mbtiUpper}`);
       if (!validMBTI.includes(mbtiUpper)) {
-        console.warn(
-          `MBTI "${jsonResponse.mbti}" is not a valid MBTI type. Setting mbti to null.`
-        );
+        console.warn(`Invalid MBTI type detected: ${mbtiUpper}`);
         jsonResponse.mbti = null;
       } else {
         jsonResponse.mbti = mbtiUpper;
@@ -91,9 +98,17 @@ export async function POST(request) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error generating response:", error);
+    console.error("Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause,
+    });
     return new Response(
-      JSON.stringify({ error: "Failed to generate response" }),
+      JSON.stringify({
+        error: "Failed to generate response",
+        details: error.message,
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json" },

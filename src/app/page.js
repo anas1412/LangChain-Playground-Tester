@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
+import ChatWidget from "@/components/ChatWidget";
 
 export default function Home() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const [structuredData, setStructuredData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -14,6 +16,8 @@ export default function Home() {
     e.preventDefault();
 
     if (!input.trim()) return;
+
+    setIsLoading(true); // Set loading state to true
 
     const newUserMessage = {
       role: "user",
@@ -34,7 +38,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           message: input,
-          model: "gemini", // or whichever model you want to use
+          model: "gemini",
         }),
       });
 
@@ -44,22 +48,36 @@ export default function Home() {
           response.status,
           response.statusText
         );
-        return;
+        throw new Error("API request failed");
       }
 
       const responseData = await response.json();
 
+      // Create assistant message with the note or a default message
       const assistantMessage = {
         role: "assistant",
-        content: JSON.stringify(responseData),
+        content: responseData.note || "No response from the assistant.",
         createdAt: new Date(),
       };
+
       const finalMessages = [...updatedMessages, assistantMessage];
       setMessages(finalMessages);
 
       setStructuredData(responseData);
     } catch (error) {
       console.error("Error during API call or JSON parsing:", error);
+
+      // Add an error message to the chat
+      const errorMessage = {
+        role: "assistant",
+        content: "Sorry, something went wrong. Please try again.",
+        createdAt: new Date(),
+      };
+
+      const finalMessages = [...updatedMessages, errorMessage];
+      setMessages(finalMessages);
+    } finally {
+      setIsLoading(false); // Reset loading state
     }
   };
 
@@ -75,12 +93,14 @@ export default function Home() {
           placeholder="Tell me about yourself..."
           rows={4}
           className="w-full p-3 border rounded-md bg-gray-100 text-foreground dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+          disabled={isLoading} // Disable input while loading
         />
         <button
           type="submit"
           className="mt-4 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-full"
+          disabled={isLoading} // Disable button while loading
         >
-          Get Insights! ✨
+          {isLoading ? "Processing..." : "Get Insights! ✨"}
         </button>
       </form>
 
@@ -131,6 +151,8 @@ export default function Home() {
           )}
         </div>
       )}
+
+      <ChatWidget />
     </div>
   );
 }

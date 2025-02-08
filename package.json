@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@langchain/anthropic": "^0.3.13",
+    "@langchain/core": "^0.3.39",
     "@langchain/google-genai": "^0.1.8",
     "@langchain/openai": "^0.4.3",
     "ai": "^4.1.26",
