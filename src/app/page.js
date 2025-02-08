@@ -1,101 +1,136 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [structuredData, setStructuredData] = useState(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!input.trim()) return;
+
+    const newUserMessage = {
+      role: "user",
+      content: input,
+      createdAt: new Date(),
+    };
+
+    const updatedMessages = [...messages, newUserMessage];
+    setMessages(updatedMessages);
+    setInput("");
+    setStructuredData(null);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: input,
+          model: "gemini", // or whichever model you want to use
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(
+          "API request failed:",
+          response.status,
+          response.statusText
+        );
+        return;
+      }
+
+      const responseData = await response.json();
+
+      const assistantMessage = {
+        role: "assistant",
+        content: JSON.stringify(responseData),
+        createdAt: new Date(),
+      };
+      const finalMessages = [...updatedMessages, assistantMessage];
+      setMessages(finalMessages);
+
+      setStructuredData(responseData);
+    } catch (error) {
+      console.error("Error during API call or JSON parsing:", error);
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-4 bg-background text-foreground min-h-screen flex flex-col items-center">
+      <h1 className="text-3xl font-bold mb-8 text-center">
+        Personality Insights ✨
+      </h1>
+      <form onSubmit={handleSubmit} className="mb-8 w-full max-w-md">
+        <textarea
+          value={input}
+          onChange={handleInputChange}
+          placeholder="Tell me about yourself..."
+          rows={4}
+          className="w-full p-3 border rounded-md bg-gray-100 text-foreground dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+        />
+        <button
+          type="submit"
+          className="mt-4 p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-full"
+        >
+          Get Insights! ✨
+        </button>
+      </form>
+
+      {structuredData && (
+        <div className="mt-12 p-6 rounded-lg shadow-xl bg-gray-100 dark:bg-gray-800 dark:shadow-gray-700 w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            Your Personalized Insights ✨
+          </h2>
+
+          {structuredData.mbti && (
+            <div className="mb-4">
+              <p className="font-semibold text-lg">MBTI Personality Type:</p>
+              <p className="text-gray-700 dark:text-gray-300">
+                {structuredData.mbti}
+              </p>
+            </div>
+          )}
+
+          {structuredData.horoscope && (
+            <div className="mb-4">
+              <p className="font-semibold text-lg">Horoscope (Zodiac Sign):</p>
+              <p className="text-gray-700 dark:text-gray-300">
+                {structuredData.horoscope}
+              </p>
+            </div>
+          )}
+
+          {structuredData.gifts && structuredData.gifts.length > 0 && (
+            <div className="mb-4">
+              <p className="font-semibold text-lg mb-2">Gift Suggestions:</p>
+              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300">
+                {structuredData.gifts.map((gift, index) => (
+                  <li key={index} className="mb-1">
+                    {gift}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {structuredData.note && (
+            <div>
+              <p className="font-semibold text-lg">Mari's Note:</p>
+              <p className="text-gray-700 dark:text-gray-300 italic">
+                {structuredData.note}
+              </p>
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
 }
