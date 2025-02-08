@@ -11,20 +11,27 @@ This project serves as a learning playground for exploring LangChain integration
 - 🧠 Personality type analysis (MBTI)
 - ⭐ Horoscope insights
 - 🎁 Personalized gift suggestions
-- 🤖 Playful AI assistant named Gini
+- 🤖 Interactive chat widget with AI assistant Gini
 - 🔄 Support for multiple AI models
+- 💬 Real-time streaming responses
+- 🌓 Dark mode support
+- 🔄 Chat history management
+- 🧹 Clear chat functionality
 
 ## Tech Stack 💻
 
 - ⚡ Next.js 15
 - 🔗 LangChain
 - 🎨 TailwindCSS
+- 📱 Responsive design
+- 🔄 Server-sent events for streaming
 
 ## Multiple AI Models Support 🤖
 
 - 🧠 OpenAI GPT-4
 - 🔮 Anthropic Claude 3.5
 - 🌟 Google Gemini 2.0
+- 🌟 Google Gemini 2.0 with streaming capabilities
 
 ## Setup 🚀
 
@@ -57,3 +64,13 @@ npm run dev
 ```
 
 5. Visit `http://localhost:3000` to see the application. ✨
+
+## Chat Widget Features 💭
+
+- Real-time message streaming
+- Persistent chat history
+- Clear chat functionality
+- Dark mode support
+- Responsive design
+- Smooth scroll to latest messages
+- User-friendly interface
