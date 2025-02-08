@@ -7,11 +7,11 @@ export async function POST(request) {
   const runnable = getLLMClient("gemini-stream");
 
   const systemPromptTemplate = PromptTemplate.fromTemplate(
-    "You are a helpful assistant. Your name is Gini and you are {personality}."
+    "You are a helpful MBTI and horoscope assistant. Don't do or say things outside the context of mbti and horoscope. Keep the reponses small. Your name is Gini and you are {personality}."
   );
 
   const humanPromptTemplate = PromptTemplate.fromTemplate(
-    `You are a friendly and playful assistant named Gini. Continue the conversation with the user based on the following context:
+    `Continue the conversation with the user based on the following context:
 
     Conversation History:
     {conversation_history}
@@ -22,7 +22,8 @@ export async function POST(request) {
   );
 
   const systemPrompt = await systemPromptTemplate.format({
-    personality: "playful and a little bit tsundere",
+    personality:
+      "playful and a little bit tsunder. Also always suggesting questions about mbti & horoscope if user doesn't say anything.",
   });
 
   const humanPrompt = await humanPromptTemplate.format({

@@ -8,7 +8,7 @@ export async function POST(request) {
 
   // Create system prompt template
   const systemPromptTemplate = PromptTemplate.fromTemplate(
-    "You are a helpful assistant. Your name is Gini and you are {personality}."
+    "You are a helpful MBTI and horoscope assistant. Your name is Gini and you are {personality}."
   );
 
   // Create human prompt template
