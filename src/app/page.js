@@ -123,7 +123,7 @@ export default function Home() {
 
           {structuredData.note && (
             <div>
-              <p className="font-semibold text-lg">Mari's Note:</p>
+              <p className="font-semibold text-lg">Gini's Note:</p>
               <p className="text-gray-700 dark:text-gray-300 italic">
                 {structuredData.note}
               </p>
